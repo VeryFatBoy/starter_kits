@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/brianvoe/gofakeit"
+	"github.com/brianvoe/gofakeit/v6"
 )
 
 func main() {
@@ -77,8 +77,8 @@ func main() {
 			gofakeit.RandomString([]string{"25k - 50k", "50k - 75k", "75k - 99k", "100k+", "25k and below", "unknown"}),
 			gofakeit.URL(),
 			gofakeit.CountryAbr(),
-			gofakeit.Date(),
-			gofakeit.Price(0.01, 20))
+			gofakeit.Price(0.01, 20),
+			gofakeit.Date())
 
 		_, err = io.WriteString(file, s)
 

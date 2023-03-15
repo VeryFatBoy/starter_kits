@@ -1,9 +1,11 @@
+set global data_conversion_compatibility_level = '6.5';
+
 drop database if exists adtech;
 create database adtech;
 use adtech;
 
 create table events (
-   user_id int
+   user_id bigint
    ,event_name varchar(128)
    ,advertiser varchar(128)
    ,campaign int(11)
@@ -17,14 +19,18 @@ create table events (
    ,shard key user_id (user_id)
 );
 
-create or replace pipeline load_events as
-load data s3 'reference-solutions.memsql.com/events-large.tsv.gz'
-config '{"region": "us-east-1"}'
-credentials '{"aws_access_key_id": "", "aws_secret_access_key": ""}'
-into table events;
-start pipeline load_events;
+-- create or replace pipeline load_events as
+-- load data s3 'reference-solutions.memsql.com/events-large.tsv.gz'
+-- config '{"region": "us-east-1"}'
+-- credentials '{"aws_access_key_id": "", "aws_secret_access_key": ""}'
+-- into table events;
+-- start pipeline load_events;
 
-create reference table campaigns (
+load data local infile "generator/events-small.tsv.gz"
+into table events
+columns terminated by '\t';
+
+create rowstore table campaigns (
    campaign_id int not null
   ,campaign_name varchar(255) character set utf8 collate utf8_general_ci
   ,end_date date
@@ -32,13 +38,18 @@ create reference table campaigns (
   ,primary key (campaign_id)
 );
 
-create or replace pipeline load_campaigns as
-load data s3 'reference-solutions.memsql.com/campaigns-large.tsv.gz'
-config '{"region": "us-east-1"}'
-credentials '{"aws_access_key_id": "", "aws_secret_access_key": ""}'
+-- create or replace pipeline load_campaigns as
+-- load data s3 'reference-solutions.memsql.com/campaigns-large.tsv.gz'
+-- config '{"region": "us-east-1"}'
+-- credentials '{"aws_access_key_id": "", "aws_secret_access_key": ""}'
+-- skip duplicate key errors
+-- into table campaigns;
+-- start pipeline load_campaigns;
+
+load data local infile "generator/campaigns-small.tsv.gz"
+into table campaigns
 skip duplicate key errors
-into table campaigns;
-start pipeline load_campaigns;
+columns terminated by '\t';
 
 create table networks (
    network_id integer not null
@@ -46,13 +57,18 @@ create table networks (
   ,primary key (network_id)
 );
 
-create or replace pipeline load_networks as
-load data s3 'reference-solutions.memsql.com/networks-large.tsv.gz'
-config '{"region": "us-east-1"}'
-credentials '{"aws_access_key_id": "", "aws_secret_access_key": ""}'
+-- create or replace pipeline load_networks as
+-- load data s3 'reference-solutions.memsql.com/networks-large.tsv.gz'
+-- config '{"region": "us-east-1"}'
+-- credentials '{"aws_access_key_id": "", "aws_secret_access_key": ""}'
+-- skip duplicate key errors
+-- into table networks;
+-- start pipeline load_networks;
+
+load data local infile "generator/networks-small.tsv.gz"
+into table networks
 skip duplicate key errors
-into table networks;
-start pipeline load_networks;
+columns terminated by '\t';
 
 create table platforms (
    platform_id integer not null
@@ -60,13 +76,18 @@ create table platforms (
   ,primary key (platform_id)
 );
 
-create or replace pipeline load_platforms as
-load data s3 'reference-solutions.memsql.com/platforms-large.tsv.gz'
-config '{"region": "us-east-1"}'
-credentials '{"aws_access_key_id": "", "aws_secret_access_key": ""}'
+-- create or replace pipeline load_platforms as
+-- load data s3 'reference-solutions.memsql.com/platforms-large.tsv.gz'
+-- config '{"region": "us-east-1"}'
+-- credentials '{"aws_access_key_id": "", "aws_secret_access_key": ""}'
+-- skip duplicate key errors
+-- into table platforms;
+-- start pipeline load_platforms;
+
+load data local infile "generator/platforms-small.tsv.gz"
+into table platforms
 skip duplicate key errors
-into table platforms;
-start pipeline load_platforms;
+columns terminated by '\t';
 
 create table commissions (
    commission_id int not null default'0'
